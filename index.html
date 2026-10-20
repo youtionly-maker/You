@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="تطبيق تتبع الكورس الرياضي لمدة 8 أسابيع. جدول تمارين، مؤقت ذكي، وتتبع التقدم.">
+<meta name="description" content="برنامج تمارين منزلي لمدة 8 أسابيع بجنطة وكتب. جدول تمارين، مؤقت، وتتبع التقدم.">
 <meta name="theme-color" content="#000000">
 <title>الكورس — 8 أسابيع</title>
 
@@ -178,6 +178,10 @@
 
   .ex-main { flex: 1; min-width: 0; }
   .ex-main .name { font-size: var(--fs-md); font-weight: 600; line-height: 1.4; transition: color 0.2s; overflow-wrap: anywhere; }
+  .ex-main .sub { color: var(--fg-55); font-size: var(--fs-sm); line-height: 1.5; margin-top: 2px; }
+  .ex-main .how { display: none; color: var(--fg-70, var(--fg-55)); font-size: var(--fs-sm); line-height: 1.6; margin-top: var(--sp-2); }
+  .list li.open .how { display: block; }
+  #ringCard, .chips { display: none !important; }
   .ex-main .name.done { color: var(--fg-40); text-decoration: line-through; text-decoration-color: var(--fg-40); }
 
   .check {
@@ -368,6 +372,26 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
+
+  /* ===== نسخة هادئة: أسود، مساحات واسعة، كتابة قليلة ===== */
+  :root { --bg-page: #000; }
+  .topbar { background: #000; border-bottom: none; }
+  .topbar h1 { font-weight: 600; }
+  .topbar .eyebrow { color: var(--fg-40); }
+  .pause-btn { border-color: transparent; background: transparent; opacity: .45; }
+  #dayPrev, #dayNext { border-color: transparent; background: transparent; color: var(--fg-40); }
+  main { padding: 2.5rem 1.75rem 1rem; }
+  .card { background: transparent; border: none; box-shadow: none; padding: 0; }
+  #exCard h2, #exCard > .muted { display: none; }
+  .list li { padding: 1.75rem 0; margin: 0; border-bottom: 1px solid var(--fg-08); }
+  .list li:hover { background: transparent; }
+  .ex-main .name { font-size: var(--fs-lg); font-weight: 500; }
+  .ex-main .sub { color: var(--fg-40); margin-top: .35rem; }
+  .ex-main .how { color: var(--fg-55); }
+  #mainBtn { background: transparent; color: var(--fg-70); border: 1px solid var(--fg-14); box-shadow: none; margin-top: 3.5rem; }
+  #mainBtn:hover, #mainBtn:focus-visible { background: var(--fg-05); transform: none; box-shadow: none; }
+  .tabbar { background: #000; border-top: none; }
+  .tab { font-size: 0; }
 </style>
 
 </head>
@@ -404,7 +428,7 @@
               <circle class="track" cx="52" cy="52" r="45"></circle>
               <circle class="bar" id="ringBar" cx="52" cy="52" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"></circle>
             </svg>
-            <div class="label"><b id="ringFrac">0/0</b><span>عضلة</span></div>
+            <div class="label"><b id="ringFrac">0/0</b><span>تمرين</span></div>
           </div>
           <div class="ring-info">
             <b id="dayTitle">—</b>
@@ -415,9 +439,10 @@
       </div>
 
       <div class="card" id="exCard">
-        <h2>التمارين المستهدفة</h2>
-        <p class="muted mb-sm">اضغط على علامة الصح عند إنهاء كل تمرين</p>
+        <h2>تمارين اليوم <span class="muted" id="exCount"></span></h2>
+        <p class="muted mb-sm">اضغط على التمرين لتشوف طريقته</p>
         <ul class="list" id="exList"></ul>
+        
       </div>
 
       <button class="btn" id="mainBtn">إتمام اليوم</button>
@@ -501,15 +526,15 @@
   </div>
 
   <nav class="tabbar" role="tablist">
-    <button class="tab active" data-page="today" id="tab-today" role="tab" aria-selected="true" aria-controls="page-today">
+    <button class="tab active" data-page="today" id="tab-today" aria-label="اليوم" role="tab" aria-selected="true" aria-controls="page-today">
       <svg viewBox="0 0 24 24" fill="none"><path d="M13 2 L4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       اليوم
     </button>
-    <button class="tab" data-page="timer" id="tab-timer" role="tab" aria-selected="false" aria-controls="page-timer">
+    <button class="tab" data-page="timer" id="tab-timer" aria-label="المؤقت" role="tab" aria-selected="false" aria-controls="page-timer">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       المؤقت
     </button>
-    <button class="tab" data-page="progress" id="tab-progress" role="tab" aria-selected="false" aria-controls="page-progress">
+    <button class="tab" data-page="progress" id="tab-progress" aria-label="التقدم" role="tab" aria-selected="false" aria-controls="page-progress">
       <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/></svg>
       التقدم
     </button>
@@ -588,17 +613,28 @@ const appStorage = {
 };
 
 const PROGRAM = {
-  0:{key:'push', title:'Push (دفع)', muscles:['الصدر','الكتف','الترايسبس'], rest:false,
-    exercises:[{id:'m_chest', name:'الصدر'}, {id:'m_shoulder', name:'الكتف'}, {id:'m_triceps', name:'الترايسبس'}]},
-  1:{key:'pull', title:'Pull (سحب)', muscles:['الظهر','البايسبس','الساعد والقبضة'], rest:false,
-    exercises:[{id:'m_back', name:'الظهر'}, {id:'m_biceps', name:'البايسبس'}, {id:'m_forearm', name:'الساعد والقبضة'}]},
-  2:{key:'rest1', title:'راحة', muscles:[], rest:true, restNote:'راحة كاملة لاستشفاء العضلات'},
-  3:{key:'legs', title:'Legs + Core (أرجل + بطن)', muscles:['الفخذ الأمامي','الفخذ الخلفي','السمانة','البطن'], rest:false,
-    exercises:[{id:'m_quads', name:'الفخذ الأمامي'}, {id:'m_hamstrings', name:'الفخذ الخلفي'}, {id:'m_calves', name:'السمانة'}, {id:'m_abs', name:'البطن'}]},
-  4:{key:'full', title:'Full Body (جسم كامل)', muscles:['الصدر','الظهر','الأكتاف','الذراع','الأرجل','البطن'], rest:false,
-    exercises:[{id:'m_f_chest', name:'الصدر'}, {id:'m_f_back', name:'الظهر'}, {id:'m_f_shoulder', name:'الأكتاف'}, {id:'m_f_arms', name:'الذراع'}, {id:'m_f_legs', name:'الأرجل'}, {id:'m_f_abs', name:'البطن'}]},
-  5:{key:'rest2', title:'راحة', muscles:[], rest:true, restNote:'راحة وتغذية جيدة'},
-  6:{key:'rest3', title:'راحة نشطة', muscles:[], rest:true, restNote:'مشي خفيف أو كارديو منخفض'},
+  0:{key:'push', title:'صدر + أكتاف + ترايسبس', muscles:['الصدر','الأكتاف','الترايسبس'], rest:false,
+    exercises:[
+      {id:'d1_pushup', name:'ضغط', meta:'الصدر · 3 × أكثر عدد تقدر عليه', how:'نزّل صدرك للأرض وارفع.'},
+      {id:'d1_press', name:'رفع الجنطة فوق الراس', meta:'الكتف الأمامي · 3 × 10', how:'شيل الجنطة عند كتفك وادفعها فوق.'},
+      {id:'d1_lateral', name:'رفع جانبي', meta:'الكتف الجانبي · 3 × 12', how:'كتاب بكل إيد، ارفعهم لجنب لين مستوى الكتف.'},
+      {id:'d1_triceps', name:'ترايسبس خلف الراس', meta:'الذراع الخلفية · 3 × 10-12', how:'امسك الجنطة بإيدينك خلف راسك، ارفعها فوق وانزلها ببطء.'}
+    ]},
+  1:{key:'rest1', title:'راحة', muscles:[], rest:true, restNote:'العضلة تكبر وقت الراحة'},
+  2:{key:'pull', title:'ظهر + بايسبس', muscles:['الظهر','البايسبس'], rest:false,
+    exercises:[
+      {id:'d2_row', name:'تجديف بالجنطة', meta:'الظهر · 3 × 10', how:'انحنِ شوي واسحب الجنطة لبطنك.'},
+      {id:'d2_curl', name:'بايسبس كيرل', meta:'الذراع الأمامية · 3 × 10', how:'امسك الجنطة من الأسفل وارفعها لصدرك وارجع.'}
+    ]},
+  3:{key:'rest2', title:'راحة', muscles:[], rest:true, restNote:'كُل زين: بيض، دجاج، حليب، رز'},
+  4:{key:'legs', title:'رجول + بطن', muscles:['الفخذ','المؤخرة','البطن'], rest:false,
+    exercises:[
+      {id:'d3_squat', name:'سكوات بالجنطة', meta:'الفخذ · 3 × 15', how:'الجنطة على ظهرك، اجلس كأنك تجلس على كرسي وقف.'},
+      {id:'d3_lunge', name:'لانجز', meta:'الفخذ والمؤخرة · 3 × 10 لكل رجل', how:'خطوة كبيرة لقدام ونزّل ركبتك.'},
+      {id:'d3_plank', name:'بلانك', meta:'البطن · 3 × 30 ثانية', how:'اثبت على كوعك وأصابعك مثل الضغط.'}
+    ]},
+  5:{key:'rest3', title:'راحة', muscles:[], rest:true, restNote:'نوم زين، 8 ساعات'},
+  6:{key:'rest4', title:'راحة', muscles:[], rest:true, restNote:'وبكرة أسبوع جديد'},
 };
 
 const TOTAL_DAYS = 56;
@@ -609,7 +645,7 @@ let currentViewDate = null;
 
 let SOUND_ON = true;
 let endAt = 0, wakeLock = null, wakeBusy = false, toastTimer;
-const SHORT = {push:'دفع', pull:'سحب', rest1:'راحة', legs:'أرجل', full:'كامل', rest2:'راحة', rest3:'نشطة'};
+const SHORT = {push:'دفع', rest1:'راحة', pull:'سحب', rest2:'راحة', legs:'رجول', rest3:'راحة', rest4:'راحة'};
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -641,7 +677,7 @@ function getCurrentSimulationDate() {
 
 async function loadData(){
   try{
-    const res = await appStorage.get('fitness-data');
+    const res = await appStorage.get('fitness-data-v2');
     if(res && res.value){ DATA = JSON.parse(res.value); }
   }catch(e){}
   
@@ -656,7 +692,7 @@ async function loadData(){
 }
 
 async function saveData(){
-  try{ await appStorage.set('fitness-data', JSON.stringify(DATA)); }catch(e){}
+  try{ await appStorage.set('fitness-data-v2', JSON.stringify(DATA)); }catch(e){}
 }
 
 function getProgramForDate(d){
@@ -723,10 +759,14 @@ function renderToday(){
     li.innerHTML = `
       <div class="ex-main">
         <div class="name ${isDone?'done':''}">${ex.name}</div>
+        <div class="sub">${ex.meta}</div>
+        <div class="how">${ex.how}</div>
       </div>
       <button class="check ${isDone?'on':''}" data-id="${ex.id}" aria-label="${isDone?'إلغاء':'إتمام'} تمرين ${ex.name}">
         <svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>`;
+    li.style.cursor='pointer';
+    li.addEventListener('click', e=>{ if(e.target.closest('.check')) return; li.classList.toggle('open'); });
     exList.appendChild(li);
   });
 
@@ -746,6 +786,7 @@ function renderToday(){
   const totalEx = prog.exercises.length;
   const doneEx = prog.exercises.filter(e=>done.has(e.id)).length;
   document.getElementById('ringFrac').textContent = `${doneEx}/${totalEx}`;
+  document.getElementById('exCount').textContent = `${doneEx}/${totalEx}`;
   
   const circumference = 2 * Math.PI * 45; 
   const bar = document.getElementById('ringBar');
